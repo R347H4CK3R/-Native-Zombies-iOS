@@ -1,4 +1,5 @@
 import XCTest
+@testable import NativeZombies
 
 final class RegistryTests: XCTestCase {
     struct TestItem: RegistryItem {
