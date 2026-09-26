@@ -1,0 +1,6 @@
+// Development default for personal test builds.
+DEV_MOD_MENU = 1
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) DEV_MOD_MENU
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+SUPPORTED_PLATFORMS = iphoneos iphonesimulator
+TARGETED_DEVICE_FAMILY = 1
