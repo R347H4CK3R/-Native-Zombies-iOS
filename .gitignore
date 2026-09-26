@@ -1,0 +1,14 @@
+# Xcode
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.ipa
+*.app
+build/
+
+# Local/private reference material
+reference/
+private-assets/
+proprietary/
+.env
+.DS_Store
