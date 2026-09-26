@@ -1,0 +1,33 @@
+name: NativeZombies
+options:
+  bundleIdPrefix: com.nativezombies
+settings:
+  base:
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    CODE_SIGNING_ALLOWED: "NO"
+targets:
+  NativeZombies:
+    type: application
+    platform: iOS
+    sources:
+      - src
+    resources:
+      - assets/placeholder
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nativezombies.game
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEV_MOD_MENU
+    scheme:
+      testTargets:
+        - NativeZombiesTests
+  NativeZombiesTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - tests
+    dependencies:
+      - target: NativeZombies
