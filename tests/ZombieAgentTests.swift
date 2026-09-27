@@ -5,8 +5,8 @@ final class ZombieAgentTests: XCTestCase {
     func testZombieChasesAfterSpawnDelay() {
         let z=ZombieAgent(definition:ZombieCatalog.walker,position:.zero)
         let nav=DirectZombieNavigation()
-        _=z.update(deltaTime:0.3,target:SIMD3<Float>(0,0,-10),navigation:nav)
-        _=z.update(deltaTime:0.3,target:SIMD3<Float>(0,0,-10),navigation:nav)
+        for _ in 0..<5 { _=z.update(deltaTime:1.0/15.0,target:SIMD3<Float>(0,0,-10),navigation:nav) }
+        _=z.update(deltaTime:1.0/60.0,target:SIMD3<Float>(0,0,-10),navigation:nav)
         XCTAssertEqual(z.state,.chase)
         XCTAssertLessThan(z.position.z,0)
     }
