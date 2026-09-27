@@ -13,18 +13,18 @@ final class GameRenderer: NSObject, MTKViewDelegate {
     private var previousFrameTime = CACurrentMediaTime()
     var frameHandler: ((Float) -> Void)?
 
-    private static let vertices: [Vertex] = [
-        Vertex(position: [-1, -1, 0], color: [1, 0.15, 0.1, 1]),
-        Vertex(position: [ 1, -1, 0], color: [0.1, 1, 0.2, 1]),
-        Vertex(position: [ 0,  1, 0], color: [0.15, 0.35, 1, 1])
+    private static let vertices: [SceneVertex] = [
+        SceneVertex(position: [-1, -1, 0], color: [1, 0.15, 0.1, 1]),
+        SceneVertex(position: [ 1, -1, 0], color: [0.1, 1, 0.2, 1]),
+        SceneVertex(position: [ 0,  1, 0], color: [0.15, 0.35, 1, 1])
     ]
 
     init(view: MTKView) {
         guard let device = view.device,
               let queue = device.makeCommandQueue(),
               let library = device.makeDefaultLibrary(),
-              let vertex = library.makeFunction(name: "basic_vertex"),
-              let fragment = library.makeFunction(name: "basic_fragment") else {
+              let vertex = library.makeFunction(name: "scene_vertex"),
+              let fragment = library.makeFunction(name: "scene_fragment") else {
             fatalError("Metal renderer initialization failed")
         }
         self.device = device
