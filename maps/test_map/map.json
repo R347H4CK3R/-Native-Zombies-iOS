@@ -1,0 +1,31 @@
+{
+  "id":"test_map","displayName":"Test Facility",
+  "playerSpawn":{"x":0,"y":0,"z":2},
+  "rooms":[
+    {"id":"spawn","displayName":"Spawn Room"},
+    {"id":"hall","displayName":"Service Hall"},
+    {"id":"arena","displayName":"Arena"}
+  ],
+  "doors":[
+    {"id":"door_spawn_hall","from":"spawn","to":"hall","cost":750,"position":{"x":0,"y":0,"z":-6}},
+    {"id":"door_hall_arena","from":"hall","to":"arena","cost":1250,"position":{"x":0,"y":0,"z":-18}}
+  ],
+  "zombieSpawns":[
+    {"id":"spawn_a","room":"spawn","position":{"x":-7,"y":0,"z":-5}},
+    {"id":"spawn_b","room":"spawn","position":{"x":7,"y":0,"z":-5}},
+    {"id":"spawn_c","room":"hall","position":{"x":5,"y":0,"z":-14}},
+    {"id":"spawn_d","room":"arena","position":{"x":-8,"y":0,"z":-30}},
+    {"id":"spawn_e","room":"arena","position":{"x":8,"y":0,"z":-30}}
+  ],
+  "interactions":[
+    {"id":"pistol_buy","kind":"wallBuy","position":{"x":-4,"y":1,"z":0},"cost":500,"contentID":"starter_pistol"},
+    {"id":"rifle_buy","kind":"wallBuy","position":{"x":4,"y":1,"z":-12},"cost":1250,"contentID":"test_rifle"},
+    {"id":"perk_vitality","kind":"perk","position":{"x":-5,"y":0,"z":-24},"cost":2500,"contentID":"vitality"},
+    {"id":"upgrade_station","kind":"upgrade","position":{"x":5,"y":0,"z":-25},"cost":5000,"contentID":null},
+    {"id":"random_box","kind":"randomBox","position":{"x":0,"y":0,"z":-28},"cost":950,"contentID":null}
+  ],
+  "navigation":[
+    {"x":0,"y":0,"z":2},{"x":0,"y":0,"z":-4},{"x":0,"y":0,"z":-9},
+    {"x":0,"y":0,"z":-15},{"x":0,"y":0,"z":-21},{"x":0,"y":0,"z":-28}
+  ]
+}
