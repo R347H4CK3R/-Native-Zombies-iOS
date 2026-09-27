@@ -2,8 +2,8 @@
 using namespace metal;
 
 struct VertexIn {
-    packed_float3 position;
-    packed_float4 color;
+    float3 position;
+    float4 color;
 };
 
 struct FrameUniforms {
