@@ -8,16 +8,33 @@ final class GameRenderer: NSObject, MTKViewDelegate {
     private let pipeline: MTLRenderPipelineState
     private let depthState: MTLDepthStencilState
     private let vertexBuffer: MTLBuffer
+    private let vertexCount: Int
     private var projection = matrix_identity_float4x4
     private(set) var cpuFrameTimeMS: Double = 0
     private var previousFrameTime = CACurrentMediaTime()
     var frameHandler: ((Float) -> Void)?
 
-    private static let vertices: [SceneVertex] = [
-        SceneVertex(position: [-1, -1, 0], normal: [0, 0, 1], uv: [0, 0]),
-        SceneVertex(position: [ 1, -1, 0], normal: [0, 0, 1], uv: [1, 0]),
-        SceneVertex(position: [ 0,  1, 0], normal: [0, 0, 1], uv: [0.5, 1])
-    ]
+    private static func makeTestFacility() -> [SceneVertex] {
+        var v:[SceneVertex]=[]
+        func quad(_ a:SIMD3<Float>,_ b:SIMD3<Float>,_ c:SIMD3<Float>,_ d:SIMD3<Float>,_ n:SIMD3<Float>) {
+            v += [SceneVertex(position:a,normal:n,uv:[0,0]),SceneVertex(position:b,normal:n,uv:[1,0]),SceneVertex(position:c,normal:n,uv:[1,1]),
+                  SceneVertex(position:a,normal:n,uv:[0,0]),SceneVertex(position:c,normal:n,uv:[1,1]),SceneVertex(position:d,normal:n,uv:[0,1])]
+        }
+        // Original placeholder facility: spawn room, service hall, arena.
+        quad([-8,0,5],[8,0,5],[8,0,-8],[-8,0,-8],[0,1,0])
+        quad([-4,0,-8],[4,0,-8],[4,0,-21],[-4,0,-21],[0,1,0])
+        quad([-10,0,-21],[10,0,-21],[10,0,-36],[-10,0,-36],[0,1,0])
+        func wall(_ x0:Float,_ z0:Float,_ x1:Float,_ z1:Float) {
+            let a=SIMD3<Float>(x0,0,z0), b=SIMD3<Float>(x1,0,z1), c=SIMD3<Float>(x1,3,z1), d=SIMD3<Float>(x0,3,z0)
+            let dx=x1-x0,dz=z1-z0; let n=simd_normalize(SIMD3<Float>(-dz,0,dx)); quad(a,b,c,d,n)
+        }
+        wall(-8,5,8,5); wall(-8,-8,-8,5); wall(8,5,8,-8)
+        wall(-8,-8,-1,-8); wall(1,-8,8,-8)
+        wall(-4,-8,-4,-21); wall(4,-21,4,-8)
+        wall(-4,-21,-1,-21); wall(1,-21,4,-21)
+        wall(-10,-21,-10,-36); wall(10,-36,10,-21); wall(-10,-36,10,-36)
+        return v
+    }
 
     init(view: MTKView) {
         guard let device = view.device,
@@ -45,12 +62,14 @@ final class GameRenderer: NSObject, MTKViewDelegate {
         depth.depthCompareFunction = .less
         depth.isDepthWriteEnabled = true
         guard let depthState = device.makeDepthStencilState(descriptor: depth),
-              let vb = device.makeBuffer(bytes: Self.vertices,
-                                         length: MemoryLayout<SceneVertex>.stride * Self.vertices.count) else {
+              let sceneVertices = Self.makeTestFacility()
+        guard let vb = device.makeBuffer(bytes: sceneVertices,
+                                         length: MemoryLayout<SceneVertex>.stride * sceneVertices.count) else {
             fatalError("GPU resource allocation failed")
         }
         self.depthState = depthState
         self.vertexBuffer = vb
+        self.vertexCount = sceneVertices.count
         super.init()
     }
 
@@ -80,14 +99,14 @@ final class GameRenderer: NSObject, MTKViewDelegate {
         pass.depthAttachment.loadAction = .clear
         pass.depthAttachment.storeAction = .dontCare
 
-        var frame = FrameUniforms(viewProjectionMatrix: projection * .translation([0, 0, -3]))
+        var frame = FrameUniforms(viewProjectionMatrix: projection * .translation([0, -1.65, -3]))
 
         if let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: pass) {
             encoder.setRenderPipelineState(pipeline)
             encoder.setDepthStencilState(depthState)
             encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
             encoder.setVertexBytes(&frame, length: MemoryLayout<FrameUniforms>.stride, index: 1)
-            encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: Self.vertices.count)
+            encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertexCount)
             encoder.endEncoding()
         }
 
