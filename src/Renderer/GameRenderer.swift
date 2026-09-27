@@ -11,6 +11,7 @@ final class GameRenderer: NSObject, MTKViewDelegate {
     private var projection = matrix_identity_float4x4
     private(set) var cpuFrameTimeMS: Double = 0
     private var previousFrameTime = CACurrentMediaTime()
+    var frameHandler: ((Float) -> Void)?
 
     private static let vertices: [Vertex] = [
         Vertex(position: [-1, -1, 0], color: [1, 0.15, 0.1, 1]),
@@ -64,7 +65,9 @@ final class GameRenderer: NSObject, MTKViewDelegate {
     func draw(in view: MTKView) {
         let now = CACurrentMediaTime()
         cpuFrameTimeMS = (now - previousFrameTime) * 1000
+        let dt = Float(now - previousFrameTime)
         previousFrameTime = now
+        frameHandler?(min(max(dt, 0), 1.0 / 15.0))
 
         guard let pass = view.currentRenderPassDescriptor,
               let drawable = view.currentDrawable,
