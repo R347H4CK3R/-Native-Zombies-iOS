@@ -61,9 +61,9 @@ final class GameRenderer: NSObject, MTKViewDelegate {
         let depth = MTLDepthStencilDescriptor()
         depth.depthCompareFunction = .less
         depth.isDepthWriteEnabled = true
+        let sceneVertices = Self.makeTestFacility()
         guard let depthState = device.makeDepthStencilState(descriptor: depth),
-              let sceneVertices = Self.makeTestFacility()
-        guard let vb = device.makeBuffer(bytes: sceneVertices,
+              let vb = device.makeBuffer(bytes: sceneVertices,
                                          length: MemoryLayout<SceneVertex>.stride * sceneVertices.count) else {
             fatalError("GPU resource allocation failed")
         }
