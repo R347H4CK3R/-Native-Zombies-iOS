@@ -14,9 +14,9 @@ final class GameRenderer: NSObject, MTKViewDelegate {
     var frameHandler: ((Float) -> Void)?
 
     private static let vertices: [SceneVertex] = [
-        SceneVertex(position: [-1, -1, 0], color: [1, 0.15, 0.1, 1]),
-        SceneVertex(position: [ 1, -1, 0], color: [0.1, 1, 0.2, 1]),
-        SceneVertex(position: [ 0,  1, 0], color: [0.15, 0.35, 1, 1])
+        SceneVertex(position: [-1, -1, 0], normal: [0, 0, 1], uv: [0, 0]),
+        SceneVertex(position: [ 1, -1, 0], normal: [0, 0, 1], uv: [1, 0]),
+        SceneVertex(position: [ 0,  1, 0], normal: [0, 0, 1], uv: [0.5, 1])
     ]
 
     init(view: MTKView) {
@@ -46,7 +46,7 @@ final class GameRenderer: NSObject, MTKViewDelegate {
         depth.isDepthWriteEnabled = true
         guard let depthState = device.makeDepthStencilState(descriptor: depth),
               let vb = device.makeBuffer(bytes: Self.vertices,
-                                         length: MemoryLayout<Vertex>.stride * Self.vertices.count) else {
+                                         length: MemoryLayout<SceneVertex>.stride * Self.vertices.count) else {
             fatalError("GPU resource allocation failed")
         }
         self.depthState = depthState
