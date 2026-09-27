@@ -26,12 +26,29 @@ jobs:
       - name: Validate tests
         run: |
           set -o pipefail
-          DEVICE=$(xcrun simctl list devices available | sed -n 's/^[[:space:]]*\(iPhone[^()]*(.*)\) ([-A-F0-9]*).*$/\1/p' | head -1)
-          if [ -n "$DEVICE" ]; then
-            UDID=$(xcrun simctl list devices available | grep -m1 'iPhone' | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
-            echo "Running tests on simulator $UDID"
+          UDID=$(xcrun simctl list devices available | grep -m1 'iPhone' | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/' || true)
+          if [ -n "$UDID" ]; then
             xcodebuild -project NativeZombies.xcodeproj -scheme NativeZombies -sdk iphonesimulator -destination "platform=iOS Simulator,id=$UDID" CODE_SIGNING_ALLOWED=NO test
           else
-            echo "No iOS simulator runtime installed on runner; compiling test bundle instead."
             xcodebuild -project NativeZombies.xcodeproj -scheme NativeZombies -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build-for-testing
           fi
+      - name: Build ARM64 iOS app
+        run: |
+          set -o pipefail
+          rm -rf build-device Payload NativeZombies-unsigned.ipa
+          xcodebuild -project NativeZombies.xcodeproj -scheme NativeZombies -sdk iphoneos -configuration Release -destination 'generic/platform=iOS' -derivedDataPath build-device CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build
+      - name: Package unsigned IPA
+        run: |
+          APP=$(find build-device/Build/Products -type d -name 'NativeZombies.app' | head -1)
+          test -n "$APP"
+          mkdir -p Payload
+          cp -R "$APP" Payload/NativeZombies.app
+          /usr/bin/zip -qry NativeZombies-unsigned.ipa Payload
+          test -s NativeZombies-unsigned.ipa
+          /usr/bin/file Payload/NativeZombies.app/NativeZombies
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: NativeZombies-unsigned-IPA
+          path: NativeZombies-unsigned.ipa
+          if-no-files-found: error
