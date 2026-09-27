@@ -1,6 +1,13 @@
 import UIKit
 
 final class TouchActionOverlay: UIView {
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        for subview in subviews where !subview.isHidden && subview.alpha > 0.01 && subview.isUserInteractionEnabled {
+            let p = subview.convert(point, from: self)
+            if subview.point(inside: p, with: event) { return true }
+        }
+        return false
+    }
     var onStateChanged: ((InputState) -> Void)?
     private var state = InputState()
 
