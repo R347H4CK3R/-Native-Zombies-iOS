@@ -6,6 +6,8 @@ final class WorldInteractionManager {
     private(set) var powerOn = false
     private(set) var upgradeLevel = 0
     let perks = PerkInventory()
+    private var boxIndex = 0
+    private let boxWeapons = [StarterWeapons.pistol.id,StarterWeapons.rifle.id,StarterWeapons.shotgun.id]
 
     func nearest(in map:MapDefinition, to p:SIMD3<Float>, maxDistance:Float=2.5) -> MapInteraction? {
         map.interactions.min { simd_distance($0.position.simd,p) < simd_distance($1.position.simd,p) }
@@ -35,7 +37,7 @@ final class WorldInteractionManager {
         case .wallBuy:
             return economy.spend(item.cost)
         case .randomBox:
-            guard economy.spend(item.cost) else{return false}; loadout.switchWeapon(); return true
+            guard economy.spend(item.cost) else{return false}; let id=boxWeapons[boxIndex % boxWeapons.count]; boxIndex += 1; return loadout.selectWeapon(id:id)
         }
     }
 }
