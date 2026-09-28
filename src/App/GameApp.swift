@@ -33,6 +33,9 @@ final class GameViewController: UIViewController {
     private let interactions = WorldInteractionManager()
     private var mapDefinition: MapDefinition?
     private var previousInteract = false
+    private let session = GameSession()
+    private let prompt = UILabel()
+    private let gameOverLabel = UILabel()
 
     override func loadView() {
         guard let device = MTLCreateSystemDefaultDevice() else { fatalError("Metal is required") }
@@ -56,12 +59,18 @@ final class GameViewController: UIViewController {
         hud.numberOfLines = 2; hud.isUserInteractionEnabled = false
         crosshair.translatesAutoresizingMaskIntoConstraints=false
         crosshair.text = "+"; crosshair.textColor = .white; crosshair.font = .systemFont(ofSize:28,weight:.medium); crosshair.isUserInteractionEnabled = false
-        root.addSubview(hud); root.addSubview(crosshair)
+        prompt.translatesAutoresizingMaskIntoConstraints = false
+        prompt.textColor = .white; prompt.font = .systemFont(ofSize:16,weight:.semibold); prompt.textAlignment = .center; prompt.isUserInteractionEnabled = false
+        gameOverLabel.translatesAutoresizingMaskIntoConstraints = false
+        gameOverLabel.textColor = .white; gameOverLabel.font = .systemFont(ofSize:32,weight:.bold); gameOverLabel.textAlignment = .center; gameOverLabel.numberOfLines = 0; gameOverLabel.isHidden = true; gameOverLabel.isUserInteractionEnabled = false
+        root.addSubview(hud); root.addSubview(crosshair); root.addSubview(prompt); root.addSubview(gameOverLabel)
         NSLayoutConstraint.activate([
             hud.leadingAnchor.constraint(equalTo:root.safeAreaLayoutGuide.leadingAnchor,constant:16),
             hud.topAnchor.constraint(equalTo:root.safeAreaLayoutGuide.topAnchor,constant:12),
             crosshair.centerXAnchor.constraint(equalTo:root.centerXAnchor),
-            crosshair.centerYAnchor.constraint(equalTo:root.centerYAnchor)
+            crosshair.centerYAnchor.constraint(equalTo:root.centerYAnchor),
+            prompt.centerXAnchor.constraint(equalTo:root.centerXAnchor), prompt.bottomAnchor.constraint(equalTo:root.safeAreaLayoutGuide.bottomAnchor,constant:-30),
+            gameOverLabel.centerXAnchor.constraint(equalTo:root.centerXAnchor), gameOverLabel.centerYAnchor.constraint(equalTo:root.centerYAnchor)
         ])
         if let url=Bundle.main.url(forResource:"map",withExtension:"json",subdirectory:"test_map"), let data=try? Data(contentsOf:url) { mapDefinition=try? MapLoader.decode(data) }
         self.view = root
@@ -69,6 +78,8 @@ final class GameViewController: UIViewController {
 
     private func updateGame(deltaTime: Float) {
         let input = currentInputState()
+        if session.state == .gameOver { if input.interact && !previousInteract { restartGame() }; previousInteract=input.interact; return }
+        if session.state == .paused { return }
         loadout.update(deltaTime: deltaTime)
         if input.reload { loadout.active.beginReload() }
         let shouldFire = loadout.active.definition.fireMode == .automatic ? input.fire : (input.fire && !previousFire)
@@ -94,6 +105,7 @@ final class GameViewController: UIViewController {
         renderer?.cameraPitch = player.state.pitch
         let damage = zombies.update(deltaTime: deltaTime, target: player.state.position)
         playerHealth = max(0, playerHealth - damage)
+        if playerHealth <= 0 { session.gameOver(); gameOverLabel.text = "GAME OVER\nTap USE to restart"; gameOverLabel.isHidden = false; return }
         if rounds.round == 0 { rounds.startNext() }
         rounds.update(deltaTime: deltaTime, activeZombies: zombies.activeCount) { [weak self] in
             guard let self else { return }
@@ -102,8 +114,22 @@ final class GameViewController: UIViewController {
         }
         zombies.removeDead()
         renderer?.zombiePositions = zombies.zombies.filter { $0.isAlive }.map { $0.position }
+        if let map=mapDefinition {
+            if let d=interactions.nearestDoor(in:map,to:player.state.position) { prompt.text="USE  Open door  \(d.cost)" }
+            else if let i=interactions.nearest(in:map,to:player.state.position) { prompt.text="USE  \(i.kind.rawValue)  \(i.cost)" }
+            else { prompt.text="" }
+        }
         let w=loadout.active
         hud.text="HP \(Int(playerHealth))   PTS \(economy.points)   ROUND \(rounds.round)\n\(w.definition.displayName)   \(w.state.magazine)/\(w.state.reserve)   Z \(zombies.activeCount)"
+    }
+
+    private func restartGame() {
+        playerHealth = 100
+        economy.setPoints(500)
+        zombies.clear()
+        gameOverLabel.isHidden = true
+        session.restart()
+        if rounds.phase == .intermission { rounds.startNext() }
     }
 
     func currentInputState() -> InputState {
