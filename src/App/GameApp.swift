@@ -127,9 +127,10 @@ final class GameViewController: UIViewController {
         playerHealth = 100
         economy.setPoints(500)
         zombies.clear()
+        rounds.reset()
+        rounds.startNext()
         gameOverLabel.isHidden = true
         session.restart()
-        if rounds.phase == .intermission { rounds.startNext() }
     }
 
     func currentInputState() -> InputState {
