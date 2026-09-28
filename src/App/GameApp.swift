@@ -59,6 +59,7 @@ final class GameViewController: UIViewController {
             self.zombies.spawn(ZombieCatalog.walker, at: SIMD3<Float>((n.truncatingRemainder(dividingBy: 3)-1)*4, 0, -10-n))
         }
         zombies.removeDead()
+        renderer?.zombiePositions = zombies.zombies.filter { $0.isAlive }.map { $0.position }
     }
 
     func currentInputState() -> InputState {
