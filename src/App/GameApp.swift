@@ -42,6 +42,8 @@ final class GameViewController: UIViewController {
     private let modRegistry = ModRegistry()
     private let modButton = UIButton(type:.system)
     private var godMode = false
+    private var freezeZombies = false
+    private var disableZombieAttacks = false
 #endif
 
     override func loadView() {
@@ -160,6 +162,8 @@ final class GameViewController: UIViewController {
         modRegistry.register(ClosureModAction("weapons.rifle","Select Rifle",.weapons){[weak self] in _=self?.loadout.selectWeapon(id:StarterWeapons.rifle.id)})
         modRegistry.register(ClosureModAction("weapons.pistol","Select Pistol",.weapons){[weak self] in _=self?.loadout.selectWeapon(id:StarterWeapons.pistol.id)})
         modRegistry.register(ClosureModAction("zombies.killall","Kill All Zombies",.zombies){[weak self] in self?.zombies.killAll()})
+        modRegistry.register(ClosureModToggle("zombies.freeze","Freeze Zombies",.zombies,get:{[weak self] in self?.freezeZombies ?? false},set:{[weak self] enabled in self?.freezeZombies=enabled;self?.zombies.zombies.forEach{$0.frozen=enabled}}))
+        modRegistry.register(ClosureModToggle("zombies.noattack","Disable Zombie Attacks",.zombies,get:{[weak self] in self?.disableZombieAttacks ?? false},set:{[weak self] enabled in self?.disableZombieAttacks=enabled;self?.zombies.zombies.forEach{$0.attacksDisabled=enabled}}))
         modRegistry.register(ClosureModAction("round.next","Next Round",.rounds){[weak self] in self?.zombies.killAll();self?.zombies.removeDead()})
         modRegistry.register(ClosureModAction("game.restart","Restart Game",.game){[weak self] in self?.restartGame()})
     }
