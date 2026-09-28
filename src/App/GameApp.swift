@@ -150,7 +150,7 @@ final class GameViewController: UIViewController {
         root.addSubview(modButton)
         NSLayoutConstraint.activate([modButton.leadingAnchor.constraint(equalTo:root.safeAreaLayoutGuide.leadingAnchor,constant:12),modButton.topAnchor.constraint(equalTo:root.safeAreaLayoutGuide.topAnchor,constant:8),modButton.widthAnchor.constraint(equalToConstant:58),modButton.heightAnchor.constraint(equalToConstant:40)])
         modRegistry.register(ClosureModAction("player.heal","Restore Health",.player){[weak self] in self?.playerHealth=100})
-        modRegistry.register(ClosureModAction("economy.points","Add 5000 Points",.game){[weak self] in self?.economy.add(5000)})
+        modRegistry.register(ClosureModAction("economy.points","Add 5000 Points",.game){[weak self] in self?.economy.addPoints(5000)})
         modRegistry.register(ClosureModAction("zombies.killall","Kill All Zombies",.zombies){[weak self] in self?.zombies.killAll()})
         modRegistry.register(ClosureModAction("round.next","Next Round",.rounds){[weak self] in self?.zombies.killAll();self?.zombies.removeDead()})
         modRegistry.register(ClosureModAction("game.restart","Restart Game",.game){[weak self] in self?.restartGame()})
