@@ -10,6 +10,8 @@ final class WeaponLoadout {
         slots = definitions.map(WeaponInstance.init)
     }
 
+    func selectWeapon(id:String) -> Bool { guard let i=slots.firstIndex(where:{$0.definition.id==id}) else{return false}; active.cancelReload(); activeIndex=i; return true }
+
     func switchWeapon() {
         guard slots.count > 1 else { return }
         active.cancelReload()
