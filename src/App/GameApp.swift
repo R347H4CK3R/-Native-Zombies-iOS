@@ -56,20 +56,20 @@ final class GameViewController: UIViewController {
             NSLayoutConstraint.activate([v.leadingAnchor.constraint(equalTo: root.leadingAnchor), v.trailingAnchor.constraint(equalTo: root.trailingAnchor), v.topAnchor.constraint(equalTo: root.topAnchor), v.bottomAnchor.constraint(equalTo: root.bottomAnchor)])
         }
         actionOverlay.onStateChanged = { [weak self] in self?.actionState = $0 }
-        hud.translatesAutoresizingMaskIntoConstraints=false
+        hud.translatesAutoresizingMaskIntoConstraints = false
         hud.textColor = .white; hud.font = .monospacedDigitSystemFont(ofSize:16,weight:.semibold)
         hud.numberOfLines = 2; hud.isUserInteractionEnabled = false
-        crosshair.translatesAutoresizingMaskIntoConstraints=false
+        crosshair.translatesAutoresizingMaskIntoConstraints = false
         crosshair.text = "+"; crosshair.textColor = .white; crosshair.font = .systemFont(ofSize:28,weight:.medium); crosshair.isUserInteractionEnabled = false
         prompt.translatesAutoresizingMaskIntoConstraints = false
         prompt.textColor = .white; prompt.font = .systemFont(ofSize:16,weight:.semibold); prompt.textAlignment = .center; prompt.isUserInteractionEnabled = false
         gameOverLabel.translatesAutoresizingMaskIntoConstraints = false
         gameOverLabel.textColor = .white; gameOverLabel.font = .systemFont(ofSize:32,weight:.bold); gameOverLabel.textAlignment = .center; gameOverLabel.numberOfLines = 0; gameOverLabel.isHidden = true; gameOverLabel.isUserInteractionEnabled = false
-        pauseButton.translatesAutoresizingMaskIntoConstraints=false
-        pauseButton.setTitle("II",for:.normal); pauseButton.titleLabel?.font=.systemFont(ofSize:22,weight:.bold)
+        pauseButton.translatesAutoresizingMaskIntoConstraints = false
+        pauseButton.setTitle("II",for:.normal); pauseButton.titleLabel?.font = .systemFont(ofSize:22,weight:.bold)
         pauseButton.addTarget(self,action:#selector(togglePause),for:.touchUpInside)
-        pausePanel.translatesAutoresizingMaskIntoConstraints=false; pausePanel.backgroundColor=UIColor.black.withAlphaComponent(0.65); pausePanel.isHidden=true; pausePanel.isUserInteractionEnabled=false
-        let pauseLabel=UILabel(); pauseLabel.translatesAutoresizingMaskIntoConstraints=false; pauseLabel.text="PAUSED"; pauseLabel.textColor=.white; pauseLabel.font=.systemFont(ofSize:32,weight:.bold)
+        pausePanel.translatesAutoresizingMaskIntoConstraints = false; pausePanel.backgroundColor = UIColor.black.withAlphaComponent(0.65); pausePanel.isHidden = true; pausePanel.isUserInteractionEnabled = false
+        let pauseLabel = UILabel(); pauseLabel.translatesAutoresizingMaskIntoConstraints = false; pauseLabel.text = "PAUSED"; pauseLabel.textColor = .white; pauseLabel.font = .systemFont(ofSize:32,weight:.bold)
         pausePanel.addSubview(pauseLabel)
         NSLayoutConstraint.activate([pauseLabel.centerXAnchor.constraint(equalTo:pausePanel.centerXAnchor),pauseLabel.centerYAnchor.constraint(equalTo:pausePanel.centerYAnchor)])
         root.addSubview(hud); root.addSubview(crosshair); root.addSubview(prompt); root.addSubview(gameOverLabel); root.addSubview(pausePanel); root.addSubview(pauseButton)
@@ -136,7 +136,7 @@ final class GameViewController: UIViewController {
 
     @objc private func togglePause() {
         if session.state == .playing { session.pause(); pausePanel.isHidden=false }
-        else if session.state == .paused { session.resume(); pausePanel.isHidden=true }
+        else if session.state == .paused { session.resume(); pausePanel.isHidden = true }
     }
 
     private func restartGame() {
