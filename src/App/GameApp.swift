@@ -38,6 +38,10 @@ final class GameViewController: UIViewController {
     private let gameOverLabel = UILabel()
     private let pauseButton = UIButton(type:.system)
     private let pausePanel = UIView()
+#if DEV_MOD_MENU
+    private let modRegistry = ModRegistry()
+    private let modButton = UIButton(type:.system)
+#endif
 
     override func loadView() {
         guard let device = MTLCreateSystemDefaultDevice() else { fatalError("Metal is required") }
@@ -73,6 +77,9 @@ final class GameViewController: UIViewController {
         pausePanel.addSubview(pauseLabel)
         NSLayoutConstraint.activate([pauseLabel.centerXAnchor.constraint(equalTo:pausePanel.centerXAnchor),pauseLabel.centerYAnchor.constraint(equalTo:pausePanel.centerYAnchor)])
         root.addSubview(hud); root.addSubview(crosshair); root.addSubview(prompt); root.addSubview(gameOverLabel); root.addSubview(pausePanel); root.addSubview(pauseButton)
+#if DEV_MOD_MENU
+        configureModMenu(on:root)
+#endif
         NSLayoutConstraint.activate([
             hud.leadingAnchor.constraint(equalTo:root.safeAreaLayoutGuide.leadingAnchor,constant:16),
             hud.topAnchor.constraint(equalTo:root.safeAreaLayoutGuide.topAnchor,constant:12),
@@ -133,6 +140,29 @@ final class GameViewController: UIViewController {
         let w=loadout.active
         hud.text="HP \(Int(playerHealth))   PTS \(economy.points)   ROUND \(rounds.round)\n\(w.definition.displayName)   \(w.state.magazine)/\(w.state.reserve)   Z \(zombies.activeCount)"
     }
+
+#if DEV_MOD_MENU
+    private func configureModMenu(on root:UIView) {
+        modButton.translatesAutoresizingMaskIntoConstraints = false
+        modButton.setTitle("MOD",for:.normal)
+        modButton.titleLabel?.font = .systemFont(ofSize:14,weight:.bold)
+        modButton.addTarget(self,action:#selector(openModMenu),for:.touchUpInside)
+        root.addSubview(modButton)
+        NSLayoutConstraint.activate([modButton.leadingAnchor.constraint(equalTo:root.safeAreaLayoutGuide.leadingAnchor,constant:12),modButton.topAnchor.constraint(equalTo:root.safeAreaLayoutGuide.topAnchor,constant:8),modButton.widthAnchor.constraint(equalToConstant:58),modButton.heightAnchor.constraint(equalToConstant:40)])
+        modRegistry.register(ClosureModAction("player.heal","Restore Health",.player){[weak self] in self?.playerHealth=100})
+        modRegistry.register(ClosureModAction("economy.points","Add 5000 Points",.game){[weak self] in self?.economy.add(5000)})
+        modRegistry.register(ClosureModAction("zombies.killall","Kill All Zombies",.zombies){[weak self] in self?.zombies.killAll()})
+        modRegistry.register(ClosureModAction("round.next","Next Round",.rounds){[weak self] in self?.zombies.killAll();self?.zombies.removeDead()})
+        modRegistry.register(ClosureModAction("game.restart","Restart Game",.game){[weak self] in self?.restartGame()})
+    }
+    @objc private func openModMenu() {
+        let wasPlaying = session.state == .playing
+        if wasPlaying { session.pause() }
+        let menu=ModMenuViewController(registry:modRegistry)
+        menu.presentationController?.delegate=nil
+        present(menu,animated:true)
+    }
+#endif
 
     @objc private func togglePause() {
         if session.state == .playing { session.pause(); pausePanel.isHidden=false }
