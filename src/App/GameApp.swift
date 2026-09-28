@@ -36,6 +36,8 @@ final class GameViewController: UIViewController {
     private let session = GameSession()
     private let prompt = UILabel()
     private let gameOverLabel = UILabel()
+    private let pauseButton = UIButton(type:.system)
+    private let pausePanel = UIView()
 
     override func loadView() {
         guard let device = MTLCreateSystemDefaultDevice() else { fatalError("Metal is required") }
@@ -63,14 +65,23 @@ final class GameViewController: UIViewController {
         prompt.textColor = .white; prompt.font = .systemFont(ofSize:16,weight:.semibold); prompt.textAlignment = .center; prompt.isUserInteractionEnabled = false
         gameOverLabel.translatesAutoresizingMaskIntoConstraints = false
         gameOverLabel.textColor = .white; gameOverLabel.font = .systemFont(ofSize:32,weight:.bold); gameOverLabel.textAlignment = .center; gameOverLabel.numberOfLines = 0; gameOverLabel.isHidden = true; gameOverLabel.isUserInteractionEnabled = false
-        root.addSubview(hud); root.addSubview(crosshair); root.addSubview(prompt); root.addSubview(gameOverLabel)
+        pauseButton.translatesAutoresizingMaskIntoConstraints=false
+        pauseButton.setTitle("II",for:.normal); pauseButton.titleLabel?.font=.systemFont(ofSize:22,weight:.bold)
+        pauseButton.addTarget(self,action:#selector(togglePause),for:.touchUpInside)
+        pausePanel.translatesAutoresizingMaskIntoConstraints=false; pausePanel.backgroundColor=UIColor.black.withAlphaComponent(0.65); pausePanel.isHidden=true; pausePanel.isUserInteractionEnabled=false
+        let pauseLabel=UILabel(); pauseLabel.translatesAutoresizingMaskIntoConstraints=false; pauseLabel.text="PAUSED"; pauseLabel.textColor=.white; pauseLabel.font=.systemFont(ofSize:32,weight:.bold)
+        pausePanel.addSubview(pauseLabel)
+        NSLayoutConstraint.activate([pauseLabel.centerXAnchor.constraint(equalTo:pausePanel.centerXAnchor),pauseLabel.centerYAnchor.constraint(equalTo:pausePanel.centerYAnchor)])
+        root.addSubview(hud); root.addSubview(crosshair); root.addSubview(prompt); root.addSubview(gameOverLabel); root.addSubview(pausePanel); root.addSubview(pauseButton)
         NSLayoutConstraint.activate([
             hud.leadingAnchor.constraint(equalTo:root.safeAreaLayoutGuide.leadingAnchor,constant:16),
             hud.topAnchor.constraint(equalTo:root.safeAreaLayoutGuide.topAnchor,constant:12),
             crosshair.centerXAnchor.constraint(equalTo:root.centerXAnchor),
             crosshair.centerYAnchor.constraint(equalTo:root.centerYAnchor),
             prompt.centerXAnchor.constraint(equalTo:root.centerXAnchor), prompt.bottomAnchor.constraint(equalTo:root.safeAreaLayoutGuide.bottomAnchor,constant:-30),
-            gameOverLabel.centerXAnchor.constraint(equalTo:root.centerXAnchor), gameOverLabel.centerYAnchor.constraint(equalTo:root.centerYAnchor)
+            gameOverLabel.centerXAnchor.constraint(equalTo:root.centerXAnchor), gameOverLabel.centerYAnchor.constraint(equalTo:root.centerYAnchor),
+            pausePanel.leadingAnchor.constraint(equalTo:root.leadingAnchor),pausePanel.trailingAnchor.constraint(equalTo:root.trailingAnchor),pausePanel.topAnchor.constraint(equalTo:root.topAnchor),pausePanel.bottomAnchor.constraint(equalTo:root.bottomAnchor),
+            pauseButton.trailingAnchor.constraint(equalTo:root.safeAreaLayoutGuide.trailingAnchor,constant:-16),pauseButton.topAnchor.constraint(equalTo:root.safeAreaLayoutGuide.topAnchor,constant:8),pauseButton.widthAnchor.constraint(equalToConstant:50),pauseButton.heightAnchor.constraint(equalToConstant:44)
         ])
         if let url=Bundle.main.url(forResource:"map",withExtension:"json",subdirectory:"test_map"), let data=try? Data(contentsOf:url) { mapDefinition=try? MapLoader.decode(data) }
         self.view = root
@@ -121,6 +132,11 @@ final class GameViewController: UIViewController {
         }
         let w=loadout.active
         hud.text="HP \(Int(playerHealth))   PTS \(economy.points)   ROUND \(rounds.round)\n\(w.definition.displayName)   \(w.state.magazine)/\(w.state.reserve)   Z \(zombies.activeCount)"
+    }
+
+    @objc private func togglePause() {
+        if session.state == .playing { session.pause(); pausePanel.isHidden=false }
+        else if session.state == .paused { session.resume(); pausePanel.isHidden=true }
     }
 
     private func restartGame() {
