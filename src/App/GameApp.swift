@@ -30,6 +30,9 @@ final class GameViewController: UIViewController {
     private let economy = EconomyManager()
     private let hud = UILabel()
     private let crosshair = UILabel()
+    private let interactions = WorldInteractionManager()
+    private var mapDefinition: MapDefinition?
+    private var previousInteract = false
 
     override func loadView() {
         guard let device = MTLCreateSystemDefaultDevice() else { fatalError("Metal is required") }
@@ -60,6 +63,7 @@ final class GameViewController: UIViewController {
             crosshair.centerXAnchor.constraint(equalTo:root.centerXAnchor),
             crosshair.centerYAnchor.constraint(equalTo:root.centerYAnchor)
         ])
+        if let url=Bundle.main.url(forResource:"map",withExtension:"json",subdirectory:"test_map"), let data=try? Data(contentsOf:url) { mapDefinition=try? MapLoader.decode(data) }
         self.view = root
     }
 
@@ -79,6 +83,11 @@ final class GameViewController: UIViewController {
             if zombies.activeCount < aliveBefore { economy.award(.kill) }
         }
         previousFire = input.fire
+        if input.interact && !previousInteract, let map=mapDefinition {
+            if let door=interactions.nearestDoor(in:map,to:player.state.position) { _=interactions.useDoor(door,economy:economy) }
+            else if let item=interactions.nearest(in:map,to:player.state.position) { _=interactions.use(item,economy:economy,loadout:loadout) }
+        }
+        previousInteract=input.interact
         player.update(input: input, deltaTime: deltaTime)
         renderer?.cameraPosition = player.state.position + SIMD3<Float>(0, player.state.eyeHeight, 0)
         renderer?.cameraYaw = player.state.yaw
