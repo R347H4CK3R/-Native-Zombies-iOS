@@ -75,6 +75,8 @@ final class WeaponInstance {
     }
 
     func cancelReload() { state.reloadRemaining = 0 }
+    func refillAmmo() { state.magazine = definition.magazineSize; state.reserve = definition.reserveCapacity }
+    func emptyAmmo() { state.magazine = 0; state.reserve = 0; state.reloadRemaining = 0 }
 }
 
 enum StarterWeapons {
