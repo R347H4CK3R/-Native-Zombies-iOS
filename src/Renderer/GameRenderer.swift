@@ -9,6 +9,8 @@ final class GameRenderer: NSObject, MTKViewDelegate {
     private let depthState: MTLDepthStencilState
     private let vertexBuffer: MTLBuffer
     private let vertexCount: Int
+    private let zombieVertexBuffer: MTLBuffer
+    private let zombieVertexCount: Int
     private var projection = matrix_identity_float4x4
     private(set) var cpuFrameTimeMS: Double = 0
     private var previousFrameTime = CACurrentMediaTime()
@@ -16,6 +18,7 @@ final class GameRenderer: NSObject, MTKViewDelegate {
     var cameraPosition = SIMD3<Float>(0, 1.72, 2)
     var cameraYaw: Float = 0
     var cameraPitch: Float = 0
+    var zombiePositions: [SIMD3<Float>] = []
 
     private static func makeTestFacility() -> [SceneVertex] {
         var v:[SceneVertex]=[]
@@ -36,6 +39,20 @@ final class GameRenderer: NSObject, MTKViewDelegate {
         wall(-4,-8,-4,-21); wall(4,-21,4,-8)
         wall(-4,-21,-1,-21); wall(1,-21,4,-21)
         wall(-10,-21,-10,-36); wall(10,-36,10,-21); wall(-10,-36,10,-36)
+        return v
+    }
+
+    private static func makeZombieMesh() -> [SceneVertex] {
+        var v:[SceneVertex]=[]
+        let lo=SIMD3<Float>(-0.35,0,-0.25), hi=SIMD3<Float>(0.35,1.75,0.25)
+        func q(_ a:SIMD3<Float>,_ b:SIMD3<Float>,_ c:SIMD3<Float>,_ d:SIMD3<Float>,_ n:SIMD3<Float>) {
+            v += [SceneVertex(position:a,normal:n,uv:[0,0]),SceneVertex(position:b,normal:n,uv:[1,0]),SceneVertex(position:c,normal:n,uv:[1,1]),
+                  SceneVertex(position:a,normal:n,uv:[0,0]),SceneVertex(position:c,normal:n,uv:[1,1]),SceneVertex(position:d,normal:n,uv:[0,1])]
+        }
+        q([lo.x,lo.y,hi.z],[hi.x,lo.y,hi.z],[hi.x,hi.y,hi.z],[lo.x,hi.y,hi.z],[0,0,1])
+        q([hi.x,lo.y,lo.z],[lo.x,lo.y,lo.z],[lo.x,hi.y,lo.z],[hi.x,hi.y,lo.z],[0,0,-1])
+        q([lo.x,lo.y,lo.z],[lo.x,lo.y,hi.z],[lo.x,hi.y,hi.z],[lo.x,hi.y,lo.z],[-1,0,0])
+        q([hi.x,lo.y,hi.z],[hi.x,lo.y,lo.z],[hi.x,hi.y,lo.z],[hi.x,hi.y,hi.z],[1,0,0])
         return v
     }
 
@@ -65,14 +82,17 @@ final class GameRenderer: NSObject, MTKViewDelegate {
         depth.depthCompareFunction = .less
         depth.isDepthWriteEnabled = true
         let sceneVertices = Self.makeTestFacility()
+        let zombieVertices = Self.makeZombieMesh()
         guard let depthState = device.makeDepthStencilState(descriptor: depth),
-              let vb = device.makeBuffer(bytes: sceneVertices,
-                                         length: MemoryLayout<SceneVertex>.stride * sceneVertices.count) else {
+              let vb = device.makeBuffer(bytes: sceneVertices, length: MemoryLayout<SceneVertex>.stride * sceneVertices.count),
+              let zvb = device.makeBuffer(bytes: zombieVertices, length: MemoryLayout<SceneVertex>.stride * zombieVertices.count) else {
             fatalError("GPU resource allocation failed")
         }
         self.depthState = depthState
         self.vertexBuffer = vb
         self.vertexCount = sceneVertices.count
+        self.zombieVertexBuffer = zvb
+        self.zombieVertexCount = zombieVertices.count
         super.init()
     }
 
@@ -122,6 +142,12 @@ final class GameRenderer: NSObject, MTKViewDelegate {
             encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
             encoder.setVertexBytes(&frame, length: MemoryLayout<FrameUniforms>.stride, index: 1)
             encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertexCount)
+            encoder.setVertexBuffer(zombieVertexBuffer, offset: 0, index: 0)
+            for position in zombiePositions {
+                var zombieFrame = FrameUniforms(viewProjectionMatrix: projection * view * .translation(position))
+                encoder.setVertexBytes(&zombieFrame, length: MemoryLayout<FrameUniforms>.stride, index: 1)
+                encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: zombieVertexCount)
+            }
             encoder.endEncoding()
         }
 
