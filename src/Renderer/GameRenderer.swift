@@ -13,6 +13,9 @@ final class GameRenderer: NSObject, MTKViewDelegate {
     private(set) var cpuFrameTimeMS: Double = 0
     private var previousFrameTime = CACurrentMediaTime()
     var frameHandler: ((Float) -> Void)?
+    var cameraPosition = SIMD3<Float>(0, 1.72, 2)
+    var cameraYaw: Float = 0
+    var cameraPitch: Float = 0
 
     private static func makeTestFacility() -> [SceneVertex] {
         var v:[SceneVertex]=[]
@@ -99,7 +102,19 @@ final class GameRenderer: NSObject, MTKViewDelegate {
         pass.depthAttachment.loadAction = .clear
         pass.depthAttachment.storeAction = .dontCare
 
-        var frame = FrameUniforms(viewProjectionMatrix: projection * .translation([0, -1.65, -3]))
+        let cp = cos(cameraPitch)
+        let forward = simd_normalize(SIMD3<Float>(-sin(cameraYaw) * cp, sin(cameraPitch), -cos(cameraYaw) * cp))
+        let worldUp = SIMD3<Float>(0, 1, 0)
+        let right = simd_normalize(simd_cross(forward, worldUp))
+        let up = simd_cross(right, forward)
+        let eye = cameraPosition
+        let view = simd_float4x4(
+            SIMD4<Float>(right.x, up.x, -forward.x, 0),
+            SIMD4<Float>(right.y, up.y, -forward.y, 0),
+            SIMD4<Float>(right.z, up.z, -forward.z, 0),
+            SIMD4<Float>(-simd_dot(right, eye), -simd_dot(up, eye), simd_dot(forward, eye), 1)
+        )
+        var frame = FrameUniforms(viewProjectionMatrix: projection * view)
 
         if let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: pass) {
             encoder.setRenderPipelineState(pipeline)
