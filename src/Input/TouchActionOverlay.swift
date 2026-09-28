@@ -28,7 +28,7 @@ final class TouchActionOverlay: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        let positions:[String:CGPoint] = ["FIRE":[0.88,0.62],"ADS":[0.76,0.48],"JUMP":[0.88,0.32],"RLD":[0.75,0.72],"USE":[0.62,0.64],"C":[0.64,0.82],"MELEE":[0.76,0.30]]
+        let positions:[String:CGPoint] = ["FIRE":CGPoint(x:0.88,y:0.62),"ADS":CGPoint(x:0.76,y:0.48),"JUMP":CGPoint(x:0.88,y:0.32),"RLD":CGPoint(x:0.75,y:0.72),"USE":CGPoint(x:0.62,y:0.64),"C":CGPoint(x:0.64,y:0.82),"MELEE":CGPoint(x:0.76,y:0.30)]
         for case let b as UIButton in subviews {
             guard let key=b.accessibilityIdentifier, let p=positions[key] else { continue }
             b.center=CGPoint(x:bounds.width*p.x,y:bounds.height*p.y)
