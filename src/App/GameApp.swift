@@ -47,6 +47,9 @@ final class GameViewController: UIViewController {
     private func updateGame(deltaTime: Float) {
         let input = currentInputState()
         player.update(input: input, deltaTime: deltaTime)
+        renderer?.cameraPosition = player.state.position + SIMD3<Float>(0, player.state.eyeHeight, 0)
+        renderer?.cameraYaw = player.state.yaw
+        renderer?.cameraPitch = player.state.pitch
         let damage = zombies.update(deltaTime: deltaTime, target: player.state.position)
         playerHealth = max(0, playerHealth - damage)
         if rounds.round == 0 { rounds.startNext() }
