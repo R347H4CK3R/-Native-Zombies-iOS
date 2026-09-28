@@ -23,6 +23,10 @@ final class GameViewController: UIViewController {
     private let zombies = ZombieManager(navigation: CachedZombieNavigation())
     private let rounds = RoundManager()
     private var playerHealth: Float = 100
+    private let loadout = WeaponLoadout(definitions: [StarterWeapons.rifle, StarterWeapons.pistol])
+    private let combat = WeaponCombatSystem()
+    private let hitscanWorld = ZombieHitscanWorld()
+    private var previousFire = false
 
     override func loadView() {
         guard let device = MTLCreateSystemDefaultDevice() else { fatalError("Metal is required") }
@@ -46,6 +50,16 @@ final class GameViewController: UIViewController {
 
     private func updateGame(deltaTime: Float) {
         let input = currentInputState()
+        loadout.update(deltaTime: deltaTime)
+        if input.reload { loadout.active.beginReload() }
+        let shouldFire = loadout.active.definition.fireMode == .automatic ? input.fire : (input.fire && !previousFire)
+        if shouldFire {
+            hitscanWorld.zombies = zombies.zombies
+            _ = combat.fire(loadout.active, ads: input.ads,
+                            origin: player.state.position + SIMD3<Float>(0, player.state.eyeHeight, 0),
+                            direction: player.forward, world: hitscanWorld)
+        }
+        previousFire = input.fire
         player.update(input: input, deltaTime: deltaTime)
         renderer?.cameraPosition = player.state.position + SIMD3<Float>(0, player.state.eyeHeight, 0)
         renderer?.cameraYaw = player.state.yaw
