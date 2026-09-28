@@ -27,6 +27,9 @@ final class GameViewController: UIViewController {
     private let combat = WeaponCombatSystem()
     private let hitscanWorld = ZombieHitscanWorld()
     private var previousFire = false
+    private let economy = EconomyManager()
+    private let hud = UILabel()
+    private let crosshair = UILabel()
 
     override func loadView() {
         guard let device = MTLCreateSystemDefaultDevice() else { fatalError("Metal is required") }
@@ -45,6 +48,18 @@ final class GameViewController: UIViewController {
             NSLayoutConstraint.activate([v.leadingAnchor.constraint(equalTo: root.leadingAnchor), v.trailingAnchor.constraint(equalTo: root.trailingAnchor), v.topAnchor.constraint(equalTo: root.topAnchor), v.bottomAnchor.constraint(equalTo: root.bottomAnchor)])
         }
         actionOverlay.onStateChanged = { [weak self] in self?.actionState = $0 }
+        hud.translatesAutoresizingMaskIntoConstraints=false
+        hud.textColor=.white; hud.font=.monospacedDigitSystemFont(ofSize:16,weight:.semibold)
+        hud.numberOfLines=2; hud.isUserInteractionEnabled=false
+        crosshair.translatesAutoresizingMaskIntoConstraints=false
+        crosshair.text="+"; crosshair.textColor=.white; crosshair.font=.systemFont(ofSize:28,weight:.medium); crosshair.isUserInteractionEnabled=false
+        root.addSubview(hud); root.addSubview(crosshair)
+        NSLayoutConstraint.activate([
+            hud.leadingAnchor.constraint(equalTo:root.safeAreaLayoutGuide.leadingAnchor,constant:16),
+            hud.topAnchor.constraint(equalTo:root.safeAreaLayoutGuide.topAnchor,constant:12),
+            crosshair.centerXAnchor.constraint(equalTo:root.centerXAnchor),
+            crosshair.centerYAnchor.constraint(equalTo:root.centerYAnchor)
+        ])
         self.view = root
     }
 
@@ -55,9 +70,13 @@ final class GameViewController: UIViewController {
         let shouldFire = loadout.active.definition.fireMode == .automatic ? input.fire : (input.fire && !previousFire)
         if shouldFire {
             hitscanWorld.zombies = zombies.zombies
-            _ = combat.fire(loadout.active, ads: input.ads,
+            let aliveBefore=zombies.activeCount
+            let hit = combat.fire(loadout.active, ads: input.ads,
                             origin: player.state.position + SIMD3<Float>(0, player.state.eyeHeight, 0),
                             direction: player.forward, world: hitscanWorld)
+            if hit != nil { economy.award(hit!.zone == .head ? .headshot : .damage) }
+            zombies.removeDead()
+            if zombies.activeCount < aliveBefore { economy.award(.kill) }
         }
         previousFire = input.fire
         player.update(input: input, deltaTime: deltaTime)
@@ -74,6 +93,8 @@ final class GameViewController: UIViewController {
         }
         zombies.removeDead()
         renderer?.zombiePositions = zombies.zombies.filter { $0.isAlive }.map { $0.position }
+        let w=loadout.active
+        hud.text="HP \(Int(playerHealth))   PTS \(economy.points)   ROUND \(rounds.round)\n\(w.definition.displayName)   \(w.state.magazine)/\(w.state.reserve)   Z \(zombies.activeCount)"
     }
 
     func currentInputState() -> InputState {
