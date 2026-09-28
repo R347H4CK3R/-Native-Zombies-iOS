@@ -16,6 +16,7 @@ final class RoundManager {
     private(set) var round=0; private(set) var phase:RoundPhase = .intermission
     private(set) var spawned=0; private var timer:Float=0; private var intermissionRemaining:Float=0
     var current:RoundDefinition { RoundCurve.definition(for:max(round,1)) }
+    func reset(){ round=0; spawned=0; timer=0; intermissionRemaining=0; phase = .intermission }
     func startNext(){ round+=1; spawned=0; timer=0; intermissionRemaining=0; phase = .spawning }
     func update(deltaTime:Float,activeZombies:Int,spawn:()->Void) {
         guard round>0 else{return}; let dt=max(deltaTime,0); timer=max(0,timer-dt)
