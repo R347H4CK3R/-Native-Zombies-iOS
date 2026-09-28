@@ -49,10 +49,10 @@ final class GameViewController: UIViewController {
         }
         actionOverlay.onStateChanged = { [weak self] in self?.actionState = $0 }
         hud.translatesAutoresizingMaskIntoConstraints=false
-        hud.textColor=.white; hud.font=.monospacedDigitSystemFont(ofSize:16,weight:.semibold)
-        hud.numberOfLines=2; hud.isUserInteractionEnabled=false
+        hud.textColor = .white; hud.font = .monospacedDigitSystemFont(ofSize:16,weight:.semibold)
+        hud.numberOfLines = 2; hud.isUserInteractionEnabled = false
         crosshair.translatesAutoresizingMaskIntoConstraints=false
-        crosshair.text="+"; crosshair.textColor=.white; crosshair.font=.systemFont(ofSize:28,weight:.medium); crosshair.isUserInteractionEnabled=false
+        crosshair.text = "+"; crosshair.textColor = .white; crosshair.font = .systemFont(ofSize:28,weight:.medium); crosshair.isUserInteractionEnabled = false
         root.addSubview(hud); root.addSubview(crosshair)
         NSLayoutConstraint.activate([
             hud.leadingAnchor.constraint(equalTo:root.safeAreaLayoutGuide.leadingAnchor,constant:16),
