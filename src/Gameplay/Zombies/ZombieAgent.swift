@@ -24,6 +24,8 @@ final class ZombieAgent: Damageable {
     private var staggerTimer: Float = 0
     private var spawnTimer: Float = 0.25
     var isAlive: Bool { health > 0 }
+    var frozen = false
+    var attacksDisabled = false
 
     init(definition: ZombieDefinition, position: SIMD3<Float>) {
         self.definition=definition; self.position=position; self.health=definition.maxHealth
@@ -45,13 +47,14 @@ final class ZombieAgent: Damageable {
         let delta=target-position
         let distance=simd_length(SIMD2<Float>(delta.x,delta.z))
         if distance <= definition.attackRange {
+            if attacksDisabled { state = .chase; return 0 }
             state = .attack
             if attackTimer <= 0 { attackTimer=definition.attackCooldown; return definition.attackDamage }
             return 0
         }
         state = .chase
         let direction=navigation.nextDirection(from: position,toward: target)
-        position += direction * definition.moveSpeed * dt
+        if !frozen { position += direction * definition.moveSpeed * dt }
         return 0
     }
 }
