@@ -41,6 +41,7 @@ final class GameViewController: UIViewController {
 #if DEV_MOD_MENU
     private let modRegistry = ModRegistry()
     private let modButton = UIButton(type:.system)
+    private var godMode = false
 #endif
 
     override func loadView() {
@@ -150,6 +151,9 @@ final class GameViewController: UIViewController {
         root.addSubview(modButton)
         NSLayoutConstraint.activate([modButton.leadingAnchor.constraint(equalTo:root.safeAreaLayoutGuide.leadingAnchor,constant:12),modButton.topAnchor.constraint(equalTo:root.safeAreaLayoutGuide.topAnchor,constant:8),modButton.widthAnchor.constraint(equalToConstant:58),modButton.heightAnchor.constraint(equalToConstant:40)])
         modRegistry.register(ClosureModAction("player.heal","Restore Health",.player){[weak self] in self?.playerHealth=100})
+        modRegistry.register(ClosureModToggle("player.god","God Mode",.player,get:{[weak self] in self?.godMode ?? false},set:{[weak self] enabled in self?.godMode=enabled;if enabled {self?.playerHealth=100}}))
+        modRegistry.register(ClosureModToggle("economy.infinite","Infinite Points",.game,get:{[weak self] in self?.economy.infinitePoints ?? false},set:{[weak self] in self?.economy.infinitePoints=$0}))
+        modRegistry.register(ClosureModToggle("economy.free","Free Purchases",.game,get:{[weak self] in self?.economy.freePurchases ?? false},set:{[weak self] in self?.economy.freePurchases=$0}))
         modRegistry.register(ClosureModAction("economy.points","Add 5000 Points",.game){[weak self] in self?.economy.addPoints(5000)})
         modRegistry.register(ClosureModAction("zombies.killall","Kill All Zombies",.zombies){[weak self] in self?.zombies.killAll()})
         modRegistry.register(ClosureModAction("round.next","Next Round",.rounds){[weak self] in self?.zombies.killAll();self?.zombies.removeDead()})
