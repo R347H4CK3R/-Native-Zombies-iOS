@@ -11,6 +11,7 @@ final class ZombieManager {
         for zombie in zombies where zombie.isAlive { damage += zombie.update(deltaTime:deltaTime,target:target,navigation:navigation) }
         return damage
     }
+    func clear(){ zombies.removeAll() }
     func killAll(){ for z in zombies where z.isAlive { z.applyDamage(Float.greatestFiniteMagnitude,zone:.body) } }
     func removeDead(){ zombies.removeAll{ !$0.isAlive } }
     var activeCount:Int { zombies.reduce(0){$0+($1.isAlive ? 1:0)} }
