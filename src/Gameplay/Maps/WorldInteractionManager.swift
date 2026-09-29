@@ -7,6 +7,9 @@ final class WorldInteractionManager {
     private(set) var upgradeLevel = 0
     let perks = PerkInventory()
     private var boxIndex = 0
+    func unlockAll(in map:MapDefinition){ unlockedDoors.formUnion(map.doors.map{$0.id}) }
+    func resetWorld(){ unlockedDoors.removeAll(); powerOn=false; upgradeLevel=0; perks.reset(); boxIndex=0 }
+    func setPower(_ enabled:Bool){ powerOn=enabled }
     private let boxWeapons = [StarterWeapons.pistol.id,StarterWeapons.rifle.id,StarterWeapons.shotgun.id]
 
     func nearest(in map:MapDefinition, to p:SIMD3<Float>, maxDistance:Float=2.5) -> MapInteraction? {
