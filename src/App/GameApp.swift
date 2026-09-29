@@ -164,7 +164,10 @@ final class GameViewController: UIViewController {
         modRegistry.register(ClosureModAction("zombies.killall","Kill All Zombies",.zombies){[weak self] in self?.zombies.killAll()})
         modRegistry.register(ClosureModToggle("zombies.freeze","Freeze Zombies",.zombies,get:{[weak self] in self?.freezeZombies ?? false},set:{[weak self] enabled in self?.freezeZombies=enabled;self?.zombies.zombies.forEach{$0.frozen=enabled}}))
         modRegistry.register(ClosureModToggle("zombies.noattack","Disable Zombie Attacks",.zombies,get:{[weak self] in self?.disableZombieAttacks ?? false},set:{[weak self] enabled in self?.disableZombieAttacks=enabled;self?.zombies.zombies.forEach{$0.attacksDisabled=enabled}}))
-        modRegistry.register(ClosureModAction("round.next","Next Round",.rounds){[weak self] in self?.zombies.killAll();self?.zombies.removeDead()})
+        modRegistry.register(ClosureModAction("round.next","Next Round",.rounds){[weak self] in self?.zombies.clear();self?.rounds.startNext()})
+        modRegistry.register(ClosureModAction("round.restart","Restart Round",.rounds){[weak self] in self?.zombies.clear();self?.rounds.restartRound()})
+        modRegistry.register(ClosureModAction("round.10","Set Round 10",.rounds){[weak self] in self?.zombies.clear();self?.rounds.setRound(10)})
+        modRegistry.register(ClosureModAction("round.20","Set Round 20",.rounds){[weak self] in self?.zombies.clear();self?.rounds.setRound(20)})
         modRegistry.register(ClosureModAction("game.restart","Restart Game",.game){[weak self] in self?.restartGame()})
     }
     @objc private func openModMenu() {
