@@ -168,6 +168,9 @@ final class GameViewController: UIViewController {
         modRegistry.register(ClosureModAction("round.restart","Restart Round",.rounds){[weak self] in self?.zombies.clear();self?.rounds.restartRound()})
         modRegistry.register(ClosureModAction("round.10","Set Round 10",.rounds){[weak self] in self?.zombies.clear();self?.rounds.setRound(10)})
         modRegistry.register(ClosureModAction("round.20","Set Round 20",.rounds){[weak self] in self?.zombies.clear();self?.rounds.setRound(20)})
+        modRegistry.register(ClosureModAction("world.unlock","Unlock All Doors",.world){[weak self] in guard let self,let map=self.mapDefinition else{return};self.interactions.unlockAll(in:map)})
+        modRegistry.register(ClosureModAction("world.power","Power On",.world){[weak self] in self?.interactions.setPower(true)})
+        modRegistry.register(ClosureModAction("world.reset","Reset World Interactions",.world){[weak self] in self?.interactions.resetWorld()})
         modRegistry.register(ClosureModAction("game.restart","Restart Game",.game){[weak self] in self?.restartGame()})
     }
     @objc private func openModMenu() {
